@@ -13,6 +13,7 @@ import { DaffCartItemInput } from '../../models/cart-item-input';
 import { MagentoGetCartResponse } from './models/responses/get-cart';
 import { MagentoCreateCartResponse } from './models/responses/create-cart';
 import { transformCartMagentoError } from './errors/transform';
+import { myCustomFragment } from './queries/fragments/cart';
 
 /**
  * A service for making Magento GraphQL queries for carts.
@@ -33,7 +34,7 @@ export class DaffMagentoCartService implements DaffCartServiceInterface<DaffCart
 
   get(cartId: string): Observable<DaffCart> {
     return this.apollo.query<MagentoGetCartResponse>({
-      query: getCart,
+      query: getCart(),
       variables: {cartId}
     }).pipe(
       catchError((error: Error) => throwError(transformCartMagentoError(error))),

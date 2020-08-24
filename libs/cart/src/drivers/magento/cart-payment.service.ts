@@ -25,6 +25,7 @@ import {
 import { DaffCartAddress } from '../../models/cart-address';
 import { DaffMagentoBillingAddressInputTransformer } from './transforms/inputs/billing-address.service';
 import { transformCartMagentoError } from './errors/transform';
+import { myCustomFragment } from './queries/fragments/cart';
 
 /**
  * A service for making Magento GraphQL queries for carts.
@@ -52,7 +53,7 @@ export class DaffMagentoCartPaymentService implements DaffCartPaymentServiceInte
 
   update(cartId: string, payment: Partial<DaffCartPaymentMethod>): Observable<Partial<DaffCart>> {
     return this.apollo.mutate<MagentoSetSelectedPaymentMethodResponse>({
-      mutation: setSelectedPaymentMethod,
+      mutation: setSelectedPaymentMethod(myCustomFragment),
       variables: {
         cartId,
         payment: this.paymentInputTransformer.transform(payment)
@@ -70,7 +71,7 @@ export class DaffMagentoCartPaymentService implements DaffCartPaymentServiceInte
 
   remove(cartId: string): Observable<void> {
     return this.apollo.mutate({
-      mutation: setSelectedPaymentMethod,
+      mutation: setSelectedPaymentMethod(myCustomFragment),
       variables: {
         cartId,
         payment: {code: ''}

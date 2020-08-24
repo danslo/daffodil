@@ -44,6 +44,7 @@ import {
   MagentoSetSelectedPaymentMethodWithBillingResponse,
   MagentoSetSelectedPaymentMethodWithBillingAndEmailResponse
 } from './models/responses/public_api';
+import { myCustomFragment } from './queries/fragments/cart';
 
 describe('Driver | Magento | Cart | CartPaymentMethodService', () => {
   let service: DaffMagentoCartPaymentService;
@@ -243,7 +244,7 @@ describe('Driver | Magento | Cart | CartPaymentMethodService', () => {
         done();
       });
 
-      const op = controller.expectOne(addTypenameToDocument(setSelectedPaymentMethod));
+      const op = controller.expectOne(addTypenameToDocument(setSelectedPaymentMethod(myCustomFragment)));
 
       op.flush({
         data: mockSetSelectedPaymentMethodResponse
@@ -362,7 +363,7 @@ describe('Driver | Magento | Cart | CartPaymentMethodService', () => {
         done();
       });
 
-      const op = controller.expectOne(addTypenameToDocument(setSelectedPaymentMethod));
+      const op = controller.expectOne(addTypenameToDocument(setSelectedPaymentMethod(myCustomFragment)));
 
       op.flush({
         data: mockSetSelectedPaymentMethodResponse

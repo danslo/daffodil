@@ -8,6 +8,17 @@ import { cartCouponFragment } from './cart-coupon';
 import { availableShippingMethodFragment } from './available-shipping-method';
 import { selectedShippingMethodFragment } from './selected-shipping-method';
 import { pricesFragment } from './prices';
+import { FragmentDocument } from '../set-selected-payment-method';
+
+export const myCustomFragment: FragmentDocument = {
+  name: "myFragment",
+  fragment: gql`
+      fragment graycoreCartExtension1 on Cart {
+        is_virtual
+      }
+  `
+}
+
 
 export const cartFragment = gql`
   fragment cart on Cart {
