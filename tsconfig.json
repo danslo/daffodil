@@ -103,6 +103,9 @@
       "@daffodil/contact": [
         "dist/contact"
       ],
+      "@daffodil/contact/driver/zendesk": [
+        "dist/contact/driver/zendesk"
+      ],
       "@daffodil/contact/testing": [
         "dist/contact/testing"
       ],
