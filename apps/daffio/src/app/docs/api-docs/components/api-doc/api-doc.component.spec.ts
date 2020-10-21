@@ -7,7 +7,7 @@ import { DaffioApiDoc } from '../../models/api-doc';
 import { DaffioDoc } from '../../../shared/models/doc';
 
 @Component({template: '', selector: 'daffio-doc-viewer'})
-class MockDaffioDocViewer {
+class MockDaffioDocViewerComponent {
 	@Input() doc: DaffioDoc
 }
 
@@ -32,7 +32,7 @@ describe('DaffioApiDocComponent', () => {
       declarations: [
 				WrapperComponent,
 				DaffioApiDocComponent,
-				MockDaffioDocViewer
+				MockDaffioDocViewerComponent
       ]
     })
     .compileComponents();

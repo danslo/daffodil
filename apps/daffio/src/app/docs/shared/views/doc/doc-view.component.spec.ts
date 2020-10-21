@@ -12,7 +12,7 @@ import { cold } from 'jasmine-marbles';
 import { DaffioDocViewerComponent } from '../../components/doc-viewer/doc-viewer.component';
 
 @Component({template: '', selector: 'daffio-doc-viewer'})
-class MockDaffioDocViewer {
+class MockDaffioDocViewerComponent {
 	@Input() doc: DaffioDoc
 }
 
@@ -28,7 +28,7 @@ describe('DaffioDocViewComponent', () => {
     TestBed.configureTestingModule({
       declarations: [
 				DaffioDocViewComponent,
-				MockDaffioDocViewer
+				MockDaffioDocViewerComponent
 			],
       providers: [
         { provide: ActivatedRoute, useValue: stubActivatedRoute }
