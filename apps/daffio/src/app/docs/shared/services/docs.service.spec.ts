@@ -1,30 +1,24 @@
 import { TestBed } from '@angular/core/testing';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { HttpClient } from '@angular/common/http';
 
-import { DaffioDocService } from './docs.service';
-import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
-import { DaffioDocFactory } from '../../testing/factories/doc.factory';
+import { DaffioDocService, DOCS_BASE_URL } from './docs.service';
 import { DaffioDoc } from '../models/doc';
 import { DaffioGuideList } from '../models/guide-list';
-import { mockGuides } from '../../testing/factories/guide-list.factory';
 
 describe('DaffioDocService', () => {
   let service: DaffioDocService<DaffioDoc, DaffioGuideList>;
-  let httpTestingController: HttpTestingController;
-  const doc = new DaffioDocFactory().create();
-  const mockGuideList = mockGuides;
+	let httpClient: HttpClient;
+	const docPath = 'my/path';
 
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [HttpClientTestingModule]
-    })
+		})
 
-    httpTestingController = TestBed.get(HttpTestingController);
-    service = TestBed.get(DaffioDocService);
-  });
-
-  afterEach(() => {
-    // After every test, assert that there are no more pending requests.
-    httpTestingController.verify();
+		service = TestBed.get(DaffioDocService);
+		httpClient = TestBed.get(HttpClient);
+		spyOn(httpClient, 'get');
   });
 
   it('should be created', () => {
@@ -32,35 +26,21 @@ describe('DaffioDocService', () => {
   });
 
   it('should be able to retrieve a doc', () => {
-    service.get('my/path').subscribe((apiDoc) => {
-      expect(apiDoc).toEqual(doc);
-    });
-    const req = httpTestingController.expectOne('/assets/daffio/my/path.json');
+		service.get(docPath);
 
-    expect(req.request.method).toEqual('GET');
-
-    req.flush(doc);
+		expect(httpClient.get).toHaveBeenCalledWith(DOCS_BASE_URL + docPath + '.json');
 	});
 
-  it('should be able to retrieve a doc when there is a fragment in the url', () => {
-    service.get('my/path#fragment').subscribe((apiDoc) => {
-      expect(apiDoc).toEqual(doc);
-    });
-    const req = httpTestingController.expectOne('/assets/daffio/my/path.json');
+  it('should retrieve the correct doc when there is a fragment in the url', () => {
+		const docFragment = '#fragment';
+		service.get(docPath + docFragment);
 
-    expect(req.request.method).toEqual('GET');
-
-    req.flush(doc);
+		expect(httpClient.get).toHaveBeenCalledWith(DOCS_BASE_URL + docPath + '.json');
 	});
 
   it('should be able to retrieve a guide list', () => {
-    service.getGuideList().subscribe((guides) => {
-      expect(guides).toEqual(mockGuideList);
-    });
-    const req = httpTestingController.expectOne('/assets/daffio/docs/guides/guide-list.json');
+		service.getGuideList();
 
-    expect(req.request.method).toEqual('GET');
-
-    req.flush(mockGuideList);
+		expect(httpClient.get).toHaveBeenCalledWith(DOCS_BASE_URL + 'docs/guides/guide-list.json');
   });
 });
