@@ -26,6 +26,9 @@ export class DaffCompositeProductFacade<T extends DaffProduct = DaffProduct> imp
 	
 	constructor(private store: Store<DaffProductReducersState<T>>) {}
 
+	/**
+	 * See the {@link product/DaffCompositeProductFacadeInterface#getMinPossiblePrice interface docs} for more details.
+	 */
 	getMinPossiblePrice(id: string): Observable<number> {
 		return this.store.pipe(select(this.selectors.selectCompositeProductMinPossiblePrice, { id }));
 	}

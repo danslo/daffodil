@@ -2,14 +2,19 @@ import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute } from '@angular/router';
 
 import { BehaviorSubject } from 'rxjs';
+import { By } from '@angular/platform-browser';
+import { Component, Input } from '@angular/core';
 
 import { DaffioDocViewComponent } from './doc-view.component';
-import { DaffioDocViewerModule } from '../../components/doc-viewer/doc-viewer.module';
 import { DaffioDocFactory } from '../../../testing/factories/doc.factory';
 import { DaffioDoc } from '../../models/doc';
 import { cold } from 'jasmine-marbles';
-import { By } from '@angular/platform-browser';
 import { DaffioDocViewerComponent } from '../../components/doc-viewer/doc-viewer.component';
+
+@Component({template: '', selector: 'daffio-doc-viewer'})
+class MockDaffioDocViewer {
+	@Input() doc: DaffioDoc
+}
 
 describe('DaffioDocViewComponent', () => {
   let component: DaffioDocViewComponent;
@@ -21,10 +26,10 @@ describe('DaffioDocViewComponent', () => {
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [DaffioDocViewComponent],
-      imports: [
-        DaffioDocViewerModule
-      ],
+      declarations: [
+				DaffioDocViewComponent,
+				MockDaffioDocViewer
+			],
       providers: [
         { provide: ActivatedRoute, useValue: stubActivatedRoute }
       ]
