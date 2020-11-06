@@ -10,7 +10,7 @@ import { DaffCartErrors } from '../../reducers/errors/cart-errors.type';
 import { DaffCartOperationType } from '../../reducers/cart-operation-type.enum';
 import { DaffCartFacadeInterface } from './cart-facade.interface';
 import { DaffCartOrderResult } from '../../models/cart-order-result';
-import { DaffCartItem } from '../../models/cart-item';
+import { DaffCartItem, DaffCartItemStateEnum } from '../../models/cart-item';
 import { DaffConfigurableCartItemAttribute } from '../../models/configurable-cart-item';
 import { DaffCompositeCartItemOption } from '../../models/composite-cart-item';
 import { DaffCartTotal } from '../../models/cart-total';
@@ -113,6 +113,7 @@ export class DaffCartFacade<
 	private _selectCartItemConfiguredAttributes;
 	private _selectCartItemCompositeOptions;
 	private _selectIsCartItemOutOfStock;
+	private _selectCartItemState;
 
   constructor(
     private store: Store<DaffCartReducersState<T, V, U>>,
@@ -197,7 +198,8 @@ export class DaffCartFacade<
 			selectCartOrderCartId,
       selectHasOrderResult,
       selectCartItemDiscountedRowTotal,
-      selectIsCartItemOutOfStock,
+			selectIsCartItemOutOfStock,
+			selectCartItemState,
 
       selectHasBillingAddress,
       selectHasShippingAddress,
@@ -209,6 +211,7 @@ export class DaffCartFacade<
 		this._selectCartItemConfiguredAttributes = selectCartItemConfiguredAttributes;
 		this._selectCartItemCompositeOptions = selectCartItemCompositeOptions;
 		this._selectIsCartItemOutOfStock = selectIsCartItemOutOfStock;
+		this._selectCartItemState = selectCartItemState;
 
     this.resolved$ = this.store.pipe(select(selectCartResolved));
     this.cart$ = this.store.pipe(select(selectCartValue));
@@ -300,20 +303,24 @@ export class DaffCartFacade<
     this.hasOrderResult$ = this.store.pipe(select(selectHasOrderResult));
 	}
 
-	getConfiguredCartItemAttributes(itemId: string | number): Observable<DaffConfigurableCartItemAttribute[]> {
+	getConfiguredCartItemAttributes(itemId: U['item_id']): Observable<DaffConfigurableCartItemAttribute[]> {
 		return this.store.pipe(select(this._selectCartItemConfiguredAttributes, { id: itemId }))
 	};
 
-  getCompositeCartItemOptions(itemId: string | number): Observable<DaffCompositeCartItemOption[]> {
+  getCompositeCartItemOptions(itemId: U['item_id']): Observable<DaffCompositeCartItemOption[]> {
 		return this.store.pipe(select(this._selectCartItemCompositeOptions, { id: itemId }));
 	};
 
-	getCartItemDiscountedTotal(itemId: string | number): Observable<number> {
+	getCartItemDiscountedTotal(itemId: U['item_id']): Observable<number> {
 		return this.store.pipe(select(this._selectCartItemDiscountedRowTotal, { id: itemId }));
 	}
 
-	isCartItemOutOfStock(itemId: DaffCartItem['item_id']): Observable<boolean> {
+	isCartItemOutOfStock(itemId: U['item_id']): Observable<boolean> {
 		return this.store.pipe(select(this._selectIsCartItemOutOfStock, { id: itemId }));
+	}
+
+	getCartItemState(itemId: U['item_id']): Observable<DaffCartItemStateEnum> {
+		return this.store.pipe(select(this._selectCartItemState, { id: itemId }));
 	}
 
   dispatch(action: Action) {

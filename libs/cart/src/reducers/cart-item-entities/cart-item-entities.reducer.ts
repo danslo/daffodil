@@ -1,7 +1,7 @@
-import { EntityState } from '@ngrx/entity';
+import { Dictionary, EntityState } from '@ngrx/entity';
 
 import { daffCartItemEntitiesAdapter } from './cart-item-entities-reducer-adapter';
-import { DaffCartItem } from '../../models/cart-item';
+import { DaffCartItem, DaffCartItemStateEnum } from '../../models/cart-item';
 import { DaffCartItemActionTypes, DaffCartActionTypes, DaffCartActions } from '../../actions/public_api';
 import { DaffCartItemActions } from '../../actions/public_api';
 import { DaffCart } from '../../models/cart';
@@ -33,6 +33,17 @@ export function daffCartItemEntitiesReducer<
 		case DaffCartActionTypes.CartLoadSuccessAction:
 		case DaffCartActionTypes.CartClearSuccessAction:
 			return adapter.addAll(<T[]><unknown>action.payload.items, state);
+		case DaffCartItemActionTypes.CartItemStateResetAction:
+			return adapter.addAll(Object.keys(state.entities).map(key => ({
+				...state.entities[key],
+				state: DaffCartItemStateEnum.Default
+			})), state);
+		case DaffCartItemActionTypes.CartItemUpdateAction:
+		case DaffCartItemActionTypes.CartItemDeleteAction:
+			return adapter.upsertOne({
+				...state.entities[action.itemId],
+				state: DaffCartItemStateEnum.Mutating
+			}, state)
     default:
       return state;
   }

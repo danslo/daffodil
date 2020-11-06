@@ -25,16 +25,27 @@ import {
   DaffCartItemAdd,
   DaffCartItemAddSuccess,
   DaffCartItemAddFailure,
+	DaffCartItemStateReset,
 } from '../actions/public_api';
 import { DaffCartStorageService } from '../storage/cart-storage.service';
 import { DaffCartItemServiceInterface, DaffCartItemDriver } from '../drivers/interfaces/cart-item-service.interface';
-import { DaffCartItem } from '../models/cart-item';
+import { DaffCartItem, DaffCartItemStateEnum } from '../models/cart-item';
 import { DaffCartItemInput, DaffCartItemInputType } from '../models/cart-item-input';
 import { DaffCart } from '../models/cart';
+import { DaffCartOrderResult } from '../models/cart-order-result';
+import { MockStore, provideMockStore } from '@ngrx/store/testing';
+import { Store } from '@ngrx/store';
+import { getDaffCartItemEntitiesSelectors } from '../selectors/cart-item-entities/cart-item-entities.selectors';
+import { DaffCartItemStateDebounceTime } from '../injection-tokens/cart-item-state-debounce-time';
+import { TestScheduler } from 'rxjs/testing';
 
 describe('Daffodil | Cart | CartItemEffects', () => {
   let actions$: Observable<any>;
-  let effects: DaffCartItemEffects<DaffCartItem, DaffCartItemInput, DaffCart>;
+	let effects: DaffCartItemEffects<DaffCartItem, DaffCartItemInput, DaffCart, DaffCartOrderResult>;
+	let store: MockStore<any>;
+	const {
+		selectAllCartItems
+	} = getDaffCartItemEntitiesSelectors();
 
   let mockCart: DaffCart;
   let mockCartItem: DaffCartItem;
@@ -55,7 +66,12 @@ describe('Daffodil | Cart | CartItemEffects', () => {
         {
           provide: DaffCartItemDriver,
           useValue: jasmine.createSpyObj('DaffCartItemDriver', ['list', 'get', 'update', 'add', 'delete'])
-        },
+				},
+				provideMockStore({}),
+				{ 
+					provide: DaffCartItemStateDebounceTime,
+					useValue: 4000
+				},
         {
           provide: DaffCartStorageService,
           useValue: jasmine.createSpyObj('DaffCartStorageService', ['getCartId'])
@@ -63,7 +79,13 @@ describe('Daffodil | Cart | CartItemEffects', () => {
       ]
     });
 
-    effects = TestBed.get<DaffCartItemEffects<DaffCartItem, DaffCartItemInput, DaffCart>>(DaffCartItemEffects);
+		effects = TestBed.get<DaffCartItemEffects<
+			DaffCartItem, 
+			DaffCartItemInput, 
+			DaffCart, 
+			DaffCartOrderResult
+		>>(DaffCartItemEffects);
+		store = TestBed.get(Store);
 
     daffCartItemDriverSpy = TestBed.get<DaffCartItemServiceInterface>(DaffCartItemDriver);
     daffCartStorageSpy = TestBed.get(DaffCartStorageService);
@@ -83,6 +105,10 @@ describe('Daffodil | Cart | CartItemEffects', () => {
 
     daffCartStorageSpy.getCartId.and.returnValue(String(mockCart.id));
   });
+
+  afterAll(() => {
+    store.resetSelectors();
+  })
 
   it('should be created', () => {
     expect(effects).toBeTruthy();
@@ -168,15 +194,47 @@ describe('Daffodil | Cart | CartItemEffects', () => {
     });
 
     describe('and the call to CartItemService is successful', () => {
-      beforeEach(() => {
-        mockCart.items.push(mockCartItem);
-        daffCartItemDriverSpy.add.and.returnValue(of(mockCart));
-        const cartItemAddSuccessAction = new DaffCartItemAddSuccess(mockCart);
-        actions$ = hot('--a', { a: cartItemAddAction });
-        expected = cold('--b', { b: cartItemAddSuccessAction });
+
+			it(`should dispatch a CartItemAddSuccess action with cart items of the correct state 
+					when a new product is added to the cart`, () => {
+				store.overrideSelector(selectAllCartItems, []);
+				const newCart = {
+					...mockCart,
+					items: [
+						mockCartItem
+					]
+				}
+				daffCartItemDriverSpy.add.and.returnValue(of(newCart));
+				const cartItemAddSuccessAction = new DaffCartItemAddSuccess({
+					...newCart,
+					items: [
+						{ ...mockCartItem, state: DaffCartItemStateEnum.New }
+					]
+				});
+				actions$ = hot('--a', { a: cartItemAddAction });
+				expected = cold('--b', { b: cartItemAddSuccessAction });
+        expect(effects.add$).toBeObservable(expected);
       });
 
-      it('should dispatch a CartItemAddSuccess action', () => {
+			it(`should dispatch a CartItemAddSuccess action with cart items of the correct state 
+					when an existing product on the cart is added to the cart`, () => {
+				store.overrideSelector(selectAllCartItems, [mockCartItem]);
+				const newCart = {
+					...mockCart,
+					items: [{
+						...mockCartItem,
+						qty: mockCartItem.qty + 1
+					}]
+				};
+				daffCartItemDriverSpy.add.and.returnValue(of(newCart));
+				const cartItemAddSuccessAction = new DaffCartItemAddSuccess({
+					...newCart,
+					items: [
+						{ ...newCart.items[0], state: DaffCartItemStateEnum.New }
+					]
+				});
+				actions$ = hot('--a', { a: cartItemAddAction });
+				expected = cold('--b', { b: cartItemAddSuccessAction });
         expect(effects.add$).toBeObservable(expected);
       });
     });
@@ -210,13 +268,22 @@ describe('Daffodil | Cart | CartItemEffects', () => {
 
     describe('and the call to CartItemService is successful', () => {
       beforeEach(() => {
-        daffCartItemDriverSpy.update.and.returnValue(of(mockCart));
-        const cartItemUpdateSuccessAction = new DaffCartItemUpdateSuccess(mockCart);
+        daffCartItemDriverSpy.update.and.returnValue(of({
+					...mockCart,
+					items: [mockCartItem]
+				}));
+        const cartItemUpdateSuccessAction = new DaffCartItemUpdateSuccess({
+					...mockCart,
+					items: [{
+						...mockCart.items[0],
+						state: DaffCartItemStateEnum.Updated
+					}]
+				});
         actions$ = hot('--a', { a: cartItemUpdateAction });
         expected = cold('--b', { b: cartItemUpdateSuccessAction });
       });
 
-      it('should dispatch a CartItemUpdateSuccess action', () => {
+      it('should dispatch a CartItemUpdateSuccess action with cart items of the correct state', () => {
         expect(effects.update$).toBeObservable(expected);
       });
     });
@@ -235,6 +302,46 @@ describe('Daffodil | Cart | CartItemEffects', () => {
         expect(effects.update$).toBeObservable(expected);
       });
     });
+	});
+
+  describe('resetCartItemStateAfterChange$', () => {
+		let expectedObservable;
+		
+		describe('when a DaffCartItemAddSuccess action is dispatched', () => {
+
+			it('should dispatch a DaffCartItemStateReset after the specified amount of time', () => {
+				const testScheduler = new TestScheduler((actual, expected) => {
+					expect(actual).toEqual(expected);
+				});
+				testScheduler.run(helpers => {
+					const expectedMarble = '4000ms a';
+					const cartItemAddSuccess = new DaffCartItemAddSuccess(mockCart);
+					const shopCartItemReset = new DaffCartItemStateReset();
+					actions$ = helpers.hot('a', { a: cartItemAddSuccess });
+					expectedObservable = {a: shopCartItemReset};
+	
+					helpers.expectObservable(effects.resetCartItemStateAfterChange$).toBe(expectedMarble, expectedObservable);
+				});
+			});
+		});
+
+		describe('when a DaffCartItemUpdateSuccess action is dispatched', () => {
+
+			it('should dispatch a DaffCartItemStateReset after the specified amount of time', () => {
+				const testScheduler = new TestScheduler((actual, expected) => {
+					expect(actual).toEqual(expected);
+				});
+				testScheduler.run(helpers => {
+					const expectedMarble = '4000ms a';
+					const cartItemUpdateSuccess = new DaffCartItemUpdateSuccess(mockCart);
+					const shopCartItemReset = new DaffCartItemStateReset();
+					actions$ = helpers.hot('a', { a: cartItemUpdateSuccess });
+					expectedObservable = {a: shopCartItemReset};
+	
+					helpers.expectObservable(effects.resetCartItemStateAfterChange$).toBe(expectedMarble, expectedObservable);
+				});
+			});
+		});
   });
 
   describe('when CartItemDeleteAction is triggered', () => {

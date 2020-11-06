@@ -4,10 +4,11 @@ import {
   MagentoCartItemFactory,
   DaffCartItemFactory
 } from '@daffodil/cart/testing';
+import { MagentoProductStockStatusEnum } from '@daffodil/product';
 
 import { DaffCartItemInputType } from '../../../../../models/cart-item-input';
 import { transformMagentoSimpleCartItem } from './simple-cart-item-transformer';
-import { MagentoProductStockStatusEnum } from '@daffodil/product';
+import { DaffCartItemStateEnum } from '../../../../../models/cart-item';
 
 describe('Driver | Magento | Cart | Transformer | SimpleMagentoCartItem', () => {
   let daffCartItemFactory: DaffCartItemFactory;
@@ -57,6 +58,7 @@ describe('Driver | Magento | Cart | Transformer | SimpleMagentoCartItem', () => 
 
     it('should return an object with the correct values', () => {
 			expect(transformedCartItem.type).toEqual(DaffCartItemInputType.Simple);
+			expect(transformedCartItem.state).toEqual(DaffCartItemStateEnum.Default);
       expect(transformedCartItem.sku).toEqual(sku);
       expect(transformedCartItem.qty).toEqual(qty);
       expect(transformedCartItem.price).toEqual(price);

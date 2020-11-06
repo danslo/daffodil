@@ -11,6 +11,7 @@ import {
 } from './guards/public_api';
 import { DaffEmptyCartResolverRedirectUrl, DaffCartResolverRedirectUrl } from './resolvers/public_api';
 import { DaffCartPaymentMethodIdMap } from './injection-tokens/public_api';
+import { DaffCartItemStateDebounceTime } from './injection-tokens/cart-item-state-debounce-time';
 
 @NgModule({
   imports: [
@@ -30,6 +31,7 @@ import { DaffCartPaymentMethodIdMap } from './injection-tokens/public_api';
 		{ provide: DaffEmptyCartResolverRedirectUrl, useValue: '/' },
 		{ provide: DaffCartResolverRedirectUrl, useValue: '/' },
 		{ provide: DaffCartPaymentMethodIdMap, useValue: {} },
+		{ provide: DaffCartItemStateDebounceTime, useValue: 4000 }
 	]
 })
 export class DaffCartModule { }

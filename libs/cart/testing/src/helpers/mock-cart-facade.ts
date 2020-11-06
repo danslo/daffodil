@@ -11,7 +11,8 @@ import {
 	DaffConfigurableCartItemAttribute,
 	DaffCompositeCartItemOption,
   DaffCartTotal,
-  DaffCartLoading
+	DaffCartLoading,
+	DaffCartItemStateEnum
 } from '@daffodil/cart';
 import { Dictionary } from '@ngrx/entity';
 
@@ -117,6 +118,10 @@ export class MockDaffCartFacade implements DaffCartFacadeInterface {
 
 	isCartItemOutOfStock(itemId: DaffCartItem['item_id']): BehaviorSubject<boolean> {
 		return new BehaviorSubject(false);
+	}
+
+	getCartItemState(itemId: DaffCartItem['item_id']): BehaviorSubject<DaffCartItemStateEnum> {
+		return new BehaviorSubject(DaffCartItemStateEnum.Default);
 	}
 
   dispatch(action: Action) {};
